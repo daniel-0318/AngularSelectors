@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Country, Region, SmallCountry } from '../interfaces/Country.interface';
-import { Observable, map, of, tap } from 'rxjs';
+import { Observable, combineLatest, map, of, tap } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 
 @Injectable({
@@ -30,8 +30,7 @@ export class CountriesService {
         cca3: country.cca3,
         borders: country.borders ?? [] // ?? es el operador de coalescencia nula
       })
-      )),
-      tap(resp => console.log(resp))
+      ))
     )
   }
 
@@ -45,6 +44,20 @@ export class CountriesService {
       })
       )
     );
+  }
+
+  getCountryBordersByCodes(borders:string[]): Observable<SmallCountry[]> {
+    if(!borders || borders.length == 0) return of([]);
+
+    const countriesRequest:Observable<SmallCountry>[] = [];
+
+    borders.forEach(code => {
+      const request = this.getCountryByAlphaCode(code);
+      countriesRequest.push(request);
+      
+    });
+
+    return combineLatest(countriesRequest);
   }
 
 }
